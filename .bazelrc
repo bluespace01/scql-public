@@ -11,6 +11,8 @@ build --enable_platform_specific_config
 build --cxxopt=-std=c++17
 build --host_cxxopt=-std=c++17
 build --linkopt -fvisibility=hidden
+build --linkopt=-lstdc++
+
 # default off CUDA build
 build --@rules_cuda//cuda:enable=false
 test --@rules_cuda//cuda:enable=false

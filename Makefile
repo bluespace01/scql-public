@@ -82,11 +82,11 @@ GOLINT-exists:
 	$(if $(shell command -v golangci-lint 2> /dev/null),$(info Found `golangci-lint`),$(shell curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh| sh -s -- -b ${TOOLBIN} v1.42.0))
 
 GO-package:
-	@GOBIN=${TOOLBIN} go install github.com/golang/mock/mockgen@v1.6.0 && \
-	GOBIN=${TOOLBIN} go install golang.org/x/tools/cmd/goyacc@latest && \
-	GOBIN=${TOOLBIN} go install golang.org/x/tools/cmd/cover@latest && \
-	GOBIN=${TOOLBIN} go install github.com/mattn/goveralls@latest && \
-	GOBIN=${TOOLBIN} go install github.com/rakyll/gotest@latest && \
-	GOBIN=${TOOLBIN} go install golang.org/x/tools/go/analysis/passes/shadow/cmd/shadow@latest
+	GOBIN=${TOOLBIN} go install -v github.com/golang/mock/mockgen@v1.6.0 && \
+	GOBIN=${TOOLBIN} go install -v golang.org/x/tools/cmd/goyacc@latest && \
+	GOBIN=${TOOLBIN} go install -v golang.org/x/tools/cmd/cover@latest && \
+	GOBIN=${TOOLBIN} go install -v github.com/mattn/goveralls@latest && \
+	GOBIN=${TOOLBIN} go install -v github.com/rakyll/gotest@latest && \
+	GOBIN=${TOOLBIN} go install -v golang.org/x/tools/go/analysis/passes/shadow/cmd/shadow@latest
 
 
