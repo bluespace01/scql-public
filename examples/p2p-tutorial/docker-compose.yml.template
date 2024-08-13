@@ -68,8 +68,8 @@ services:
         - -h
         - mysql
       timeout: 20s
-    expose:
-      - "3306"
+    ports:
+      - "3306:3306"
     restart: always
     volumes:
       - ./mysql/initdb:/docker-entrypoint-initdb.d

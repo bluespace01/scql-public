@@ -1,3 +1,12 @@
+# Quick Start
+bash examples/p2p-tutorial/setup.sh
+
+(cd examples/p2p-tutorial && docker compose up -d)
+
+The flow is as below:
+*.template -> *.yml && tls
+
+
 # SCQL
 
 [![CircleCI](https://dl.circleci.com/status-badge/img/gh/secretflow/scql/tree/main.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/secretflow/scql/tree/main)

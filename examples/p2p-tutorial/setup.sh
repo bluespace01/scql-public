@@ -7,7 +7,9 @@ SCRIPT_DIR=$(
 )
 
 # generate password for mysql root user
-MYSQL_PASSWD=$(cat /dev/urandom | base64 | tr -dc A-Za-z0-9 | head -c 13)
+#MYSQL_PASSWD=$(cat /dev/urandom | base64 | tr -dc A-Za-z0-9 | head -c 13)
+MYSQL_PASSWD="123456"
+
 for file in $(grep -rl '__MYSQL_ROOT_PASSWD__' --exclude='*.sh' ${SCRIPT_DIR}/); do
   # remove suffix .template
   newfile=$(echo $file | sed 's/\.[^.]*$//')
