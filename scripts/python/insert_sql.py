@@ -84,65 +84,70 @@ def create_table_if_not_exists_bob(cursor):
     """)
 
 #--------------------------------------------------------------------------
-def insert_data_alice(conn, cursor, num_records):
-    """插入数据"""
+def insert_data_alice(conn, cursor, num_records, batch_size=1000):
+    """批量插入数据"""
+    records = []
     for i in range(num_records):
         # 生成随机数据
         id = 'id' + str(i+1).zfill(9)
-        # credit_rank
         credit_rank = fake.random_int(min=3, max=6)
-        # income
         income = fake.random_int(min=10000, max=99999)
-        # age
         age = fake.random_int(min=18, max=50)
 
-        # 构造插入语句 
+        # 添加到记录列表
+        records.append((id, credit_rank, income, age))
+
+        # 每 batch_size 条数据执行一次插入
+        if len(records) >= batch_size:
+            sql = """
+            INSERT INTO user_credit (id, credit_rank, income, age)
+            VALUES (%s, %s, %s, %s)
+            """
+            cursor.executemany(sql, records)
+            conn.commit()
+            records = []  # 清空记录
+
+    # 插入剩余的记录
+    if records:
         sql = """
         INSERT INTO user_credit (id, credit_rank, income, age)
         VALUES (%s, %s, %s, %s)
         """
-        values = (id , credit_rank, income, age)
-
-        # 执行插入语句
-        cursor.execute(sql, values)
-
-        # 每 1000 条数据提交一次
-        if cursor.rowcount % 1000 == 0:
-            conn.commit()
-    
-    # 提交剩余数据
-    conn.commit()
+        cursor.executemany(sql, records)
+        conn.commit()
 
 #--------------------------------------------------------------------------
-def insert_data_bob(conn, cursor, num_records):
-    """插入数据"""
+def insert_data_bob(conn, cursor, num_records, batch_size=1000):
+    """批量插入数据"""
+    records = []
     for i in range(num_records):
         # 生成随机数据
         id = 'id' + str(i+1).zfill(9)
-        # amount is float with fake number between 0 and 1000000
         amount = fake.pyfloat(left_digits=5, right_digits=2, positive=True, min_value=100, max_value=100000)
-        # activate is number of 1 or 0 with fake boolean
-        if fake.pybool():
-            activate = 1
-        else:
-            activate = 0
+        activate = 1 if fake.pybool() else 0
 
-        # 构造插入语句 
+        # 添加到记录列表
+        records.append((id, amount, activate))
+
+        # 每 batch_size 条数据执行一次插入
+        if len(records) >= batch_size:
+            sql = """
+            INSERT INTO user_stats (id, order_amount, is_active)
+            VALUES (%s, %s, %s)
+            """
+            cursor.executemany(sql, records)
+            conn.commit()
+            records = []  # 清空记录
+
+    # 插入剩余的记录
+    if records:
         sql = """
         INSERT INTO user_stats (id, order_amount, is_active)
         VALUES (%s, %s, %s)
         """
-        values = (id , amount, activate)
+        cursor.executemany(sql, records)
+        conn.commit()
 
-        # 执行插入语句
-        cursor.execute(sql, values)
-
-        # 每 1000 条数据提交一次
-        if cursor.rowcount % 1000 == 0:
-            conn.commit()
-    
-    # 提交剩余数据
-    conn.commit()
 
 #--------------------------------------------------------------------------
 def main():
