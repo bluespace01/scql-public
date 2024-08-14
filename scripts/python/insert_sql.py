@@ -1,5 +1,6 @@
 from faker import Faker
 import mysql.connector
+import datetime,sys
 
 # 数据库配置参数
 # Alice
@@ -21,7 +22,7 @@ bob_db_config = {
 }
 
 # 设置生成数据的数量
-num_records = 1000000  # 1M 数据
+num_records = 10000000  # 10M 数据
 
 fake = Faker()
 #--------------------------------------------------------------------------
@@ -84,9 +85,11 @@ def create_table_if_not_exists_bob(cursor):
     """)
 
 #--------------------------------------------------------------------------
-def insert_data_alice(conn, cursor, num_records, batch_size=1000):
+def insert_data_alice(conn, cursor, num_records, batch_size=10000):
     """批量插入数据"""
     records = []
+    cmpl_size = 0
+    percentage_pre=0
     for i in range(num_records):
         # 生成随机数据
         id = 'id' + str(i+1).zfill(9)
@@ -107,6 +110,20 @@ def insert_data_alice(conn, cursor, num_records, batch_size=1000):
             conn.commit()
             records = []  # 清空记录
 
+            cmpl_size = cmpl_size + batch_size
+            if cmpl_size > num_records:
+                cmpl_size = num_records
+            # print(f"File Size: {file_size} bytes, Completed Size: {cmpl_size} bytes")
+            percentage = (cmpl_size/num_records)*100
+            # print(f"Percentage: {percentage:.2f}%")
+            if percentage - percentage_pre >=1:
+                # convert percentage to int and round to 2 decimal places
+                percentage = round(percentage)
+                # print(f"Percentage: {percentage}%")
+                progress_bar(percentage)
+                percentage_pre = percentage
+
+
     # 插入剩余的记录
     if records:
         sql = """
@@ -115,11 +132,15 @@ def insert_data_alice(conn, cursor, num_records, batch_size=1000):
         """
         cursor.executemany(sql, records)
         conn.commit()
+    
+    clear_progress_bar()
 
 #--------------------------------------------------------------------------
-def insert_data_bob(conn, cursor, num_records, batch_size=1000):
+def insert_data_bob(conn, cursor, num_records, batch_size=10000):
     """批量插入数据"""
     records = []
+    cmpl_size = 0
+    percentage_pre=0
     for i in range(num_records):
         # 生成随机数据
         id = 'id' + str(i+1).zfill(9)
@@ -139,6 +160,19 @@ def insert_data_bob(conn, cursor, num_records, batch_size=1000):
             conn.commit()
             records = []  # 清空记录
 
+            cmpl_size = cmpl_size + batch_size
+            if cmpl_size > num_records:
+                cmpl_size = num_records
+            # print(f"File Size: {file_size} bytes, Completed Size: {cmpl_size} bytes")
+            percentage = (cmpl_size/num_records)*100
+            # print(f"Percentage: {percentage:.2f}%")
+            if percentage - percentage_pre >=1:
+                # convert percentage to int and round to 2 decimal places
+                percentage = round(percentage)
+                # print(f"Percentage: {percentage}%")
+                progress_bar(percentage)
+                percentage_pre = percentage
+
     # 插入剩余的记录
     if records:
         sql = """
@@ -147,12 +181,39 @@ def insert_data_bob(conn, cursor, num_records, batch_size=1000):
         """
         cursor.executemany(sql, records)
         conn.commit()
+    
+    clear_progress_bar()
 
+#-------------------------------------------------------------------------------------
+def progress_bar(percentage):
+    toolbar_width = 100
+    if percentage < 0 or percentage > 100:
+        print("Invalid percentage value: %d" % percentage)
+        raise ValueError("Percentage must be between 0 and 100")
+
+    # Calculate the number of '=' characters to display
+    progress = int(toolbar_width * (percentage / 100.0))
+    
+    # Generate the progress bar string
+    bar = "[" + "=" * progress + " " * (toolbar_width - progress) + "]"
+    
+    # Print the progress bar with the percentage
+    sys.stdout.write("\r%s %d%%" % (bar, percentage))
+    sys.stdout.flush()
+
+#-------------------------------------------------------------------------------------
+def clear_progress_bar():
+    toolbar_width = 100    
+    # Clear the progress bar by printing spaces over it
+    sys.stdout.write("\r" + " " * (toolbar_width + 15) + "\r")
+    sys.stdout.flush()
 
 #--------------------------------------------------------------------------
 def main():
     conn = None
     cursor = None
+
+    print('Start alice and bob ... '+datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
 
     try:
         # 连接到 bob MySQL 服务器
@@ -186,6 +247,7 @@ def main():
         if conn is not None:
             conn.close()
 
+    print('Complete alice ... '+datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
 
     try:
         # 连接到 bob MySQL 服务器
@@ -219,6 +281,7 @@ def main():
         if conn is not None:
             conn.close()
 
+    print('Complete bob ... '+datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
 
     print('Data insertion successfully.')
 
