@@ -1,33 +1,30 @@
 from faker import Faker
 import mysql.connector
-from mysql.connector import errorcode
-
-fake = Faker()
 
 # 数据库配置参数
 # Alice
-# db_config = {
-#     'user': 'root',
-#     'password': '123456',
-#     'host': '192.168.10.121',
-#     'port': 3306,
-#     'database': 'test'  # 这里可以是想要连接的数据库名
-# }
-
+alice_db_config = {
+    'user': 'root',
+    'password': '123456',
+    'host': '192.168.10.121',
+    'port': 3306,
+    'database': 'alice'  # 这里可以是想要连接的数据库名
+}
 
 # Bob
-db_config = {
+bob_db_config = {
     'user': 'root',
     'password': '123456',
     'host': '192.168.10.122',
     'port': 3306,
-    'database': 'test'  # 这里可以是想要连接的数据库名
+    'database': 'bob'  # 这里可以是想要连接的数据库名
 }
 
-
 # 设置生成数据的数量
-num_records = 10000  # 1M 数据
+num_records = 1000000  # 1M 数据
 
+fake = Faker()
+#--------------------------------------------------------------------------
 def create_connection(config):
     """创建 MySQL 连接"""
     try:
@@ -43,6 +40,7 @@ def create_connection(config):
         print(f"Error: {err}")
         return None
 
+#--------------------------------------------------------------------------
 def select_or_create_database(conn, database_name):
     """选择数据库，如果不存在则创建数据库"""
     cursor = conn.cursor()
@@ -54,32 +52,56 @@ def select_or_create_database(conn, database_name):
     finally:
         cursor.close()
 
-def create_table_if_not_exists(cursor):
+#--------------------------------------------------------------------------
+def create_table_if_not_exists_alice(cursor):
+    """如果表存在，则删除表"""
+    cursor.execute("DROP TABLE IF EXISTS user_credit")
+
     """如果表不存在，则创建表"""
     cursor.execute("""
-    CREATE TABLE IF NOT EXISTS users (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        name VARCHAR(100),
-        email VARCHAR(100),
-        address VARCHAR(255),
-        date_of_birth DATE
-    )
+    CREATE TABLE `user_credit` (
+        `ID` varchar(64) NOT NULL,
+        `credit_rank` int NOT NULL,
+        `income` int NOT NULL,
+        `age` int NOT NULL,
+        PRIMARY KEY (`ID`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     """)
 
-def insert_data(conn, cursor, num_records):
-    """插入数据"""
-    for _ in range(num_records):
-        name = fake.name().replace("'", "''")
-        email = fake.email().replace("'", "''")
-        address = fake.address().replace("'", "''")
-        dob = fake.date_of_birth(tzinfo=None, minimum_age=18, maximum_age=90).isoformat()
+#--------------------------------------------------------------------------
+def create_table_if_not_exists_bob(cursor):
+    """如果表存在，则删除表"""
+    cursor.execute("DROP TABLE IF EXISTS user_stats")
 
-        # 构造插入语句
+    """如果表不存在，则创建表"""
+    cursor.execute("""
+    CREATE TABLE `user_stats` (
+        `ID` varchar(64) not NULL,
+        `order_amount` float not null,
+        `is_active` tinyint(1) not null,
+        PRIMARY KEY (`ID`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    """)
+
+#--------------------------------------------------------------------------
+def insert_data_alice(conn, cursor, num_records):
+    """插入数据"""
+    for i in range(num_records):
+        # 生成随机数据
+        id = 'id' + str(i+1).zfill(9)
+        # credit_rank
+        credit_rank = fake.random_int(min=3, max=6)
+        # income
+        income = fake.random_int(min=10000, max=99999)
+        # age
+        age = fake.random_int(min=18, max=50)
+
+        # 构造插入语句 
         sql = """
-        INSERT INTO users (name, email, address, date_of_birth)
+        INSERT INTO user_credit (id, credit_rank, income, age)
         VALUES (%s, %s, %s, %s)
         """
-        values = (name, email, address, dob)
+        values = (id , credit_rank, income, age)
 
         # 执行插入语句
         cursor.execute(sql, values)
@@ -91,31 +113,61 @@ def insert_data(conn, cursor, num_records):
     # 提交剩余数据
     conn.commit()
 
+#--------------------------------------------------------------------------
+def insert_data_bob(conn, cursor, num_records):
+    """插入数据"""
+    for i in range(num_records):
+        # 生成随机数据
+        id = 'id' + str(i+1).zfill(9)
+        # amount is float with fake number between 0 and 1000000
+        amount = fake.pyfloat(left_digits=5, right_digits=2, positive=True, min_value=100, max_value=100000)
+        # activate is number of 1 or 0 with fake boolean
+        if fake.pybool():
+            activate = 1
+        else:
+            activate = 0
+
+        # 构造插入语句 
+        sql = """
+        INSERT INTO user_stats (id, order_amount, is_active)
+        VALUES (%s, %s, %s)
+        """
+        values = (id , amount, activate)
+
+        # 执行插入语句
+        cursor.execute(sql, values)
+
+        # 每 1000 条数据提交一次
+        if cursor.rowcount % 1000 == 0:
+            conn.commit()
+    
+    # 提交剩余数据
+    conn.commit()
+
+#--------------------------------------------------------------------------
 def main():
     conn = None
     cursor = None
 
     try:
-        # 连接到 MySQL 服务器
-        conn = create_connection(db_config)
+        # 连接到 bob MySQL 服务器
+        conn = create_connection(alice_db_config)
 
         if conn and conn.is_connected():
-            print('Successfully connected to the MySQL server')
+            print('Successfully connected to the MySQL alice server')
 
             # 选择或创建数据库
-            select_or_create_database(conn, db_config['database'])
+            select_or_create_database(conn, alice_db_config['database'])
 
             # 使用数据库
             cursor = conn.cursor()
-            cursor.execute(f"USE {db_config['database']}")
+            cursor.execute(f"USE {alice_db_config['database']}")
 
             # 创建表（如果不存在）
-            create_table_if_not_exists(cursor)
-
-
+            create_table_if_not_exists_alice(cursor)
 
             # 插入数据
-            insert_data(conn, cursor, num_records)
+            insert_data_alice(conn, cursor, num_records)
 
         else:
             print("Failed to connect to the MySQL server.")
@@ -129,7 +181,42 @@ def main():
         if conn is not None:
             conn.close()
 
+
+    try:
+        # 连接到 bob MySQL 服务器
+        conn = create_connection(bob_db_config)
+
+        if conn and conn.is_connected():
+            print('Successfully connected to the MySQL bob server')
+
+            # 选择或创建数据库
+            select_or_create_database(conn, bob_db_config['database'])
+
+            # 使用数据库
+            cursor = conn.cursor()
+            cursor.execute(f"USE {bob_db_config['database']}")
+
+            # 创建表（如果不存在）
+            create_table_if_not_exists_bob(cursor)
+
+            # 插入数据
+            insert_data_bob(conn, cursor, num_records)
+
+        else:
+            print("Failed to connect to the MySQL server.")
+
+    except mysql.connector.Error as err:
+        print(f"An unexpected error occurred: {err}")
+    finally:
+        # 确保游标和连接都被关闭
+        if cursor is not None:
+            cursor.close()
+        if conn is not None:
+            conn.close()
+
+
     print('Data insertion successfully.')
 
+#--------------------------------------------------------------------------
 if __name__ == "__main__":
     main()
