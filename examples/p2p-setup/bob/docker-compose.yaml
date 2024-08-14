@@ -1,0 +1,46 @@
+version: '3.8'
+services:
+  broker:
+    image: secretflow/scql:latest
+    command:
+      - /home/admin/bin/broker
+      - -config=/home/admin/configs/config.yml
+    restart: always
+    ports:
+      - 8080:8080
+      - 8081:8081
+    volumes:
+      - ./config.yml:/home/admin/configs/config.yml
+      - ./party_info.json:/home/admin/configs/party_info.json
+      - ./ed25519key.pem:/home/admin/configs/ed25519key.pem
+  engine:
+    cap_add:
+      - NET_ADMIN
+    command:
+      - /home/admin/bin/scqlengine
+      - --flagfile=/home/admin/engine/conf/gflags.conf
+    image: secretflow/scql:latest
+    ports:
+      - 8003:8003
+    volumes:
+      - ./gflags.conf:/home/admin/engine/conf/gflags.conf
+  mysql:
+    image: mysql:latest
+    environment:
+      - MYSQL_ROOT_PASSWORD=123456
+      - TZ=Asia/Shanghai
+    healthcheck:
+      retries: 10
+      test:
+        - CMD
+        - mysqladmin
+        - ping
+        - -h
+        - mysql
+      timeout: 20s
+    ports:
+      - "3306:3306"
+    restart: always
+    volumes:
+      - ./bob_init.sql:/docker-entrypoint-initdb.d/bob_init.sql
+      - ./broker_init_bob.sql:/docker-entrypoint-initdb.d/broker_init_bob.sql
