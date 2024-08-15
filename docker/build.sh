@@ -164,5 +164,8 @@ else
   docker buildx build --platform $TARGET_PLATFORM --target $TARGET_STAGE -f Dockerfile -t $SCQL_IMAGE:$IMAGE_TAG .
 fi
 
+docker tag $SCQL_IMAGE:$IMAGE_TAG docker.bluespace.asia/$SCQL_IMAGE:$IMAGE_TAG
+docker push docker.bluespace.asia/$SCQL_IMAGE:$IMAGE_TAG
+
 # cleanup
 rm -rf ${TMP_PATH}
