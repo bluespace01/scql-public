@@ -57,10 +57,10 @@ spu_cmake_external(
             "-lrt",
 	    # "-L$(path/to/your/poco/lib)",  # 添加POCO库路径
             "-L/usr/local/lib",  # 添加POCO库路径
-            "-lPocoFoundation",
-            "-lPocoData",
+            # "-lPocoFoundation",
+            # "-lPocoData",
             #"-lPocoDataMySQL",
-            "-lPocoDataSQLite",
+            # "-lPocoDataSQLite",
             # "-lPocoDataPostgreSQL",
         ],
     }),
