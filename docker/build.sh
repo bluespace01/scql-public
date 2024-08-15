@@ -23,9 +23,10 @@ ENABLE_CACHE=false
 TARGET_STAGE=image-prod
 TARGET_PLATFORM=""
 BASE_IMAGE=ubuntu
+VERSION_TXT=false
 
 usage() {
-  echo "Usage: $0 [-n Name] [-t Tag] [-p Platform] [-s Stage] [-c]"
+  echo "Usage: $0 [-n Name] [-t Tag] [-p Platform] [-s Stage] [-c] [-v]"
   echo ""
   echo "Options:"
   echo "  -n name, image name, default is \"scql\""
@@ -34,9 +35,10 @@ usage() {
   echo "  -p target platform, default is \"linux/amd64\", support \"linux/arm64\" and \"linux/amd64\"."
   echo "  -b base image, default is \"ubuntu\", support \"ubuntu\" and \"anolis\"."
   echo "  -c, enable host disk bazel cache to speedup build process"
+  echo "  -v, read version from the file of ../version.txt. And set it as image tag."
 }
 
-while getopts "n:t:s:p:b:c" options; do
+while getopts "n:t:s:p:b:cv" options; do
   case "${options}" in
   n)
     SCQL_IMAGE=${OPTARG}
@@ -56,6 +58,9 @@ while getopts "n:t:s:p:b:c" options; do
   b)
     BASE_IMAGE=${OPTARG}
     ;;
+  v)
+    VERSION_TXT=true
+    ;;  
   *)
     usage
     exit 1
@@ -75,6 +80,16 @@ WORK_DIR=$(
   cd $SCRIPT_DIR/..
   pwd
 )
+
+# 如果启用了版本读取选项，则从 version.txt 文件中读取版本号
+if [ "$VERSION_TXT" = true ]; then
+  if [ -f ../version.txt ]; then
+    IMAGE_TAG=$(sed -n 's/^version\s*=\s*"\(.*\)"/\1/p' ../version.txt)
+  else
+    echo "version.txt 文件不存在"
+    exit 1
+  fi
+fi
 
 echo "build image $SCQL_IMAGE:$IMAGE_TAG"
 
