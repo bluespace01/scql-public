@@ -164,8 +164,17 @@ else
   docker buildx build --platform $TARGET_PLATFORM --target $TARGET_STAGE -f Dockerfile -t $SCQL_IMAGE:$IMAGE_TAG .
 fi
 
-docker tag $SCQL_IMAGE:$IMAGE_TAG docker.bluespace.asia/$SCQL_IMAGE:$IMAGE_TAG
-docker push docker.bluespace.asia/$SCQL_IMAGE:$IMAGE_TAG
+if ["$IMAGE_TAG"=="latest"]; then
+  docker tag $SCQL_IMAGE:lastest docker.bluespace.asia/$SCQL_IMAGE:latest
+  docker push docker.bluespace.asia/$SCQL_IMAGE:latest
+else
+  docker tag $SCQL_IMAGE:$IMAGE_TAG docker.bluespace.asia/$SCQL_IMAGE:$IMAGE_TAG
+  docker push docker.bluespace.asia/$SCQL_IMAGE:$IMAGE_TAG
+
+  docker tag $SCQL_IMAGE:$IMAGE_TAG docker.bluespace.asia/$SCQL_IMAGE:latest
+  docker push docker.bluespace.asia/$SCQL_IMAGE:latest
+fi
+
 
 # cleanup
 rm -rf ${TMP_PATH}
