@@ -1,7 +1,7 @@
 version: '3.8'
 services:
   broker:
-    image: secretflow/scql:latest
+    image: docker.bluespace.asia/scql:0.8.1
     command:
       - /home/admin/bin/broker
       - -config=/home/admin/configs/config.yml
@@ -19,13 +19,13 @@ services:
     command:
       - /home/admin/bin/scqlengine
       - --flagfile=/home/admin/engine/conf/gflags.conf
-    image: secretflow/scql:latest
+    image: docker.bluespace.asia/scql:0.8.1
     ports:
       - 8003:8003
     volumes:
       - ./gflags.conf:/home/admin/engine/conf/gflags.conf
   mysql:
-    image: mysql:latest
+    image: docker.bluespace.asia/mysql:latest
     environment:
       - MYSQL_ROOT_PASSWORD=123456
       - TZ=Asia/Shanghai
