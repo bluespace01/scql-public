@@ -2,12 +2,12 @@
   "participants": [
     {
       "party_code": "alice",
-      "endpoint": "http://192.168.10.121:8081",
+      "endpoint": "http://192.168.10.13:8081",
       "pubkey": "MCowBQYDK2VwAyEAFPYtpOVjQ3ChKDcBfNxEnJbYVNBK6LCTj7x57pVJL1w="
     },
     {
       "party_code": "bob",
-      "endpoint": "http://192.168.10.122:8081",
+      "endpoint": "http://192.168.10.14:8081",
       "pubkey": "MCowBQYDK2VwAyEAyLY1RtcJUOfv5/3AH5K7citFam3YRVA13M/3f1B68SI="
     }
   ]

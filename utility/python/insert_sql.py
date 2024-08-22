@@ -7,7 +7,7 @@ import datetime,sys
 alice_db_config = {
     'user': 'root',
     'password': '123456',
-    'host': '192.168.10.121',
+    'host': '192.168.10.13',
     'port': 3306,
     'database': 'alice'  # 这里可以是想要连接的数据库名
 }
@@ -16,7 +16,7 @@ alice_db_config = {
 bob_db_config = {
     'user': 'root',
     'password': '123456',
-    'host': '192.168.10.122',
+    'host': '192.168.10.14',
     'port': 3306,
     'database': 'bob'  # 这里可以是想要连接的数据库名
 }

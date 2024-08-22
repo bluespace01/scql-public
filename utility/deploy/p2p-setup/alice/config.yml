@@ -11,11 +11,11 @@ party_info_file: "/home/admin/configs/party_info.json"
 private_key_path: "/home/admin/configs/ed25519key.pem"
 intra_host: broker:8080
 engine:
-  timeout: 120s
+  timeout: 600s
   protocol: http
   content_type: application/json
   uris:
-    - for_peer: 192.168.10.121:8003
+    - for_peer: 192.168.10.13:8003
       for_self: engine:8003
 storage:
   type: mysql
